@@ -154,18 +154,28 @@ const generateUniqueTitle = (keywords: string[], index: number): string => {
   return title
 }
 
-// Función para generar descripciones de respaldo
+// Función mejorada para generar descripciones de respaldo sin saltos de línea
 const generateBackupDescription = (keyword: string, index: number): string => {
+  // Plantillas de descripciones mejoradas - todas como una sola línea continua
   const descriptionTemplates = [
-    `Descubre el poder de ${keyword}. Resultados garantizados y atención personalizada. ¡Consulta ahora!`,
-    `¿Buscas soluciones efectivas para ${keyword}? Nuestros expertos te guiarán. ¡Contáctanos hoy mismo!`,
-    `Obtén los mejores resultados en ${keyword} con nuestra amplia experiencia. ¡Llama ahora y agenda tu cita!`,
-    `Especialistas en ${keyword} a tu disposición. Transforma tu vida con nuestros servicios. ¡Reserva tu consulta!`,
+    `Descubre el poder de nuestros servicios profesionales de ${keyword}. Resultados garantizados y atención personalizada.`,
+    `¿Buscas soluciones efectivas para ${keyword}? Nuestros expertos te guiarán hacia resultados concretos y duraderos.`,
+    `Obtén los mejores resultados en ${keyword} con nuestra experiencia profesional. Llama ahora y agenda tu consulta.`,
+    `Especialistas en ${keyword} a tu disposición para transformar tu vida positivamente. Reserva tu consulta ahora.`,
+    `Servicio profesional de ${keyword} con resultados comprobados. Atención personalizada y confidencial.`,
+    `Expertos en ${keyword} con años de experiencia y casos de éxito. Contacta con nosotros hoy mismo.`,
+    `Soluciones efectivas y rápidas para ${keyword}. Métodos probados que garantizan tu satisfacción total.`,
+    `Resultados visibles con nuestro servicio de ${keyword}. Profesionales certificados te atenderán personalmente.`,
+    `Transforma tu vida con nuestros servicios de ${keyword}. Métodos efectivos y atención individualizada.`,
+    `Servicios exclusivos de ${keyword} con garantía de resultados. Consulta ahora y recupera tu felicidad.`,
+    `Recupera tu tranquilidad con nuestros métodos profesionales de ${keyword}. Primera consulta sin compromiso.`,
+    `Mejora tu vida con nuestro servicio especializado de ${keyword}. Resultados visibles desde la primera sesión.`,
   ]
 
   const templateIndex = index % descriptionTemplates.length
   let description = descriptionTemplates[templateIndex]
 
+  // Asegurar que la descripción tenga menos de 90 caracteres
   if (description.length > 90) {
     description = description.substring(0, 90)
   }
@@ -242,6 +252,14 @@ function removeTrailingWords(text: string): string {
 
   // Eliminar artículos y preposiciones comunes al final
   return trimmed.replace(/\s+(el|la|los|las|un|una|unos|unas|de|del|al|a|en|con|por|para|y|e|o|u)$/i, "")
+}
+
+// Función para asegurar que las descripciones no tengan saltos de línea
+const ensureNoLineBreaks = (descriptions: string[]): string[] => {
+  return descriptions.map((desc) => {
+    // Reemplazar cualquier combinación de saltos de línea con un espacio
+    return desc.replace(/[\r\n]+/g, " ").trim()
+  })
 }
 
 export function GoogleAdsGenerator() {
@@ -827,12 +845,15 @@ export function GoogleAdsGenerator() {
       const newDescriptions = await regenerateDescriptions(ad.keywords, ad.finalUrl, adObjective, writingStyle)
 
       if (newDescriptions.length > 0) {
+        // Asegurar que no haya saltos de línea en las descripciones
+        const cleanedDescriptions = ensureNoLineBreaks(newDescriptions)
+
         // Actualizar el anuncio con las nuevas descripciones
         setAds((prev) => {
           const newAds = [...prev]
           newAds[index] = {
             ...newAds[index],
-            descriptions: newDescriptions,
+            descriptions: cleanedDescriptions,
           }
           return newAds
         })
@@ -877,8 +898,8 @@ export function GoogleAdsGenerator() {
         headlines.push("")
       }
 
-      // Fill in all 4 description slots (or empty if less than 4)
-      const descriptions = [...ad.descriptions]
+      // Fill in all 4 description slots (or empty if less than 4), eliminating any line breaks
+      const descriptions = [...ad.descriptions].map((desc) => desc.replace(/[\r\n]+/g, " ").trim())
       while (descriptions.length < 4) {
         descriptions.push("")
       }
@@ -888,8 +909,8 @@ export function GoogleAdsGenerator() {
         [
           campaignName,
           adGroupName,
-          ...headlines.map((h) => `"${h}"`),
-          ...descriptions.map((d) => `"${d}"`),
+          ...headlines.map((h) => `"${h.replace(/"/g, '""')}"`),
+          ...descriptions.map((d) => `"${d.replace(/"/g, '""')}"`),
           "", // Path 1 (empty)
           "", // Path 2 (empty)
           `"${ad.finalUrl}"`, // Final URL
@@ -1055,6 +1076,30 @@ export function GoogleAdsGenerator() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 text-sm">
+            <a
+              href="https://v0-data-gilt.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-purple-500 hover:text-purple-700 underline flex items-center"
+            >
+              <span>Generador de ADS y Sitelinks</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 ml-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </a>
+          </div>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
               <Button
@@ -2223,115 +2268,6 @@ export function GoogleAdsGenerator() {
                           <p className="mt-1">
                             Un Quality Score alto puede reducir el CPC y mejorar la posición del anuncio.
                           </p>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="sentiment" className="space-y-4">
-                      <h3 className="text-md font-medium">Analizador de Sentimiento</h3>
-                      <div className="p-4 rounded-md bg-black/20 border border-white/10">
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <span className="text-lg font-bold">Tono general: Positivo</span>
-                            <p className="text-sm text-muted-foreground">Puntuación: 7.5/10</p>
-                          </div>
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-green-500 flex items-center justify-center">
-                            <span className="text-white font-bold">7.5</span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3 mt-4">
-                          <h4 className="text-sm font-medium mb-2">Emociones detectadas:</h4>
-
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-sm">Confianza</span>
-                              <span className="text-sm font-medium">85%</span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2">
-                              <div className="h-2 rounded-full bg-blue-500" style={{ width: "85%" }}></div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-sm">Esperanza</span>
-                              <span className="text-sm font-medium">75%</span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2">
-                              <div className="h-2 rounded-full bg-green-500" style={{ width: "75%" }}></div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-sm">Urgencia</span>
-                              <span className="text-sm font-medium">60%</span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2">
-                              <div className="h-2 rounded-full bg-amber-500" style={{ width: "60%" }}></div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-sm">Miedo</span>
-                              <span className="text-sm font-medium">15%</span>
-                            </div>
-                            <div className="w-full bg-gray-700 rounded-full h-2">
-                              <div className="h-2 rounded-full bg-red-500" style={{ width: "15%" }}></div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 text-xs text-muted-foreground">
-                          <p>
-                            El tono emocional de tus anuncios puede influir significativamente en la respuesta del
-                            usuario.
-                          </p>
-                          <p className="mt-1">
-                            Este anuncio tiene un buen equilibrio entre confianza y urgencia, lo que puede motivar a la
-                            acción.
-                          </p>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="prohibited" className="space-y-4">
-                      <h3 className="text-md font-medium">Detector de Lenguaje Prohibido</h3>
-                      <div className="p-4 rounded-md bg-black/20 border border-white/10">
-                        <div className="flex items-center mb-4">
-                          <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center mr-2">
-                            <CheckIcon className="h-4 w-4 text-green-500" />
-                          </div>
-                          <span className="font-medium text-green-500">No se detectó lenguaje prohibido</span>
-                        </div>
-
-                        <div className="space-y-3">
-                          <h4 className="text-sm font-medium">Términos potencialmente problemáticos:</h4>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <div className="p-2 rounded-md bg-green-500/10 border border-green-500/30 flex items-center justify-between">
-                              <span className="text-sm">Garantizado</span>
-                              <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
-                                Aceptable
-                              </Badge>
-                            </div>
-
-                            <div className="p-2 rounded-md bg-green-500/10 border border-green-500/30 flex items-center justify-between">
-                              <span className="text-sm">Resultados</span>
-                              <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
-                                Aceptable
-                              </Badge>
-                            </div>
-
-                            <div className="p-2 rounded-md bg-green-500/10 border border-green-500/30 flex items-center justify-between">
-                              <span className="text-sm">Efectivo</span>
-                              <Badge variant="outline" className="bg-green-500/20 text-green-400 border-green-500/30">
-                                Aceptable
-                              </Badge>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     </TabsContent>

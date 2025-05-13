@@ -209,11 +209,10 @@ INSTRUCCIONES DETALLADAS:
 4. APROVECHA AL MÁXIMO EL ESPACIO: Cada descripción debe tener entre 85-90 caracteres (¡IMPORTANTE!)
 5. NO uses signos de puntuación
 6. EVITA REPETIR ESTRUCTURAS - cada descripción debe ser única en su enfoque
-7. Usa los siguientes estilos de escritura: ${styleNames}
-8. Utiliza estas estructuras variadas para las descripciones:
-   ${selectedDescStructures.join("\n   ")}
-9. USA PALABRAS SENCILLAS Y COMUNES, evita tecnicismos o sinónimos raros (el público objetivo es de nivel educativo básico)
-10. NO DEJES PALABRAS O LETRAS SUELTAS AL FINAL de las descripciones, corta la frase antes si es necesario
+7. IMPORTANTE: TODAS LAS DESCRIPCIONES DEBEN SER UNA ÚNICA LÍNEA CONTINUA, SIN SALTOS DE LÍNEA.
+8. USA PALABRAS SENCILLAS Y COMUNES, evita tecnicismos o sinónimos raros (el público objetivo es de nivel educativo básico)
+9. NO DEJES PALABRAS O LETRAS SUELTAS AL FINAL de las descripciones, corta la frase antes si es necesario
+10. IMPORTANTE: NO INCLUYAS LISTAS DE PALABRAS CLAVE AL FINAL DE LA DESCRIPCIÓN
 11. OBJETIVO DEL ANUNCIO: ${getAdObjectiveDescription(adObjective)}
 
 EJEMPLOS DE DESCRIPCIONES CORRECTAS (no uses estas exactamente):
@@ -225,6 +224,7 @@ EJEMPLOS DE DESCRIPCIONES INCORRECTAS (NO GENERAR ASÍ):
 - "Marketing digital" ❌ (Demasiado corto)
 - "Servicios web para empresas" ❌ (No aprovecha el espacio disponible)
 - "Servicios de marketing digital para empresas que quieren crecer y" ❌ (Palabra suelta al final)
+- "Servicio de amarres de amor\\nconjuros\\nrituales" ❌ (Con saltos de línea o listas de palabras clave)
 
 IMPORTANTE: Genera descripciones COMPLETAMENTE DIFERENTES entre sí en estructura y enfoque.
 
@@ -433,7 +433,7 @@ function generateBackupTitleFn(keyword: string, index: number): string {
   return title
 }
 
-// Modificar la función generateBackupDescription para aprovechar mejor el espacio
+// Modificar la función generateBackupDescriptionFn para aprovechar mejor el espacio
 function generateBackupDescriptionFn(keyword: string, index: number): string {
   // Detectar si la palabra clave es un verbo en primera persona
   const firstPersonVerbs = ["quitarme", "ayudarme", "liberarme", "sanarme", "curarme", "protegerme"]
@@ -446,24 +446,29 @@ function generateBackupDescriptionFn(keyword: string, index: number): string {
     keyword = keyword.replace(/^quitar(me|te|le|nos|les)/, "quitar")
   }
 
-  // Plantillas de descripciones que aprovechan mejor el espacio (cerca de 90 caracteres)
+  // Plantillas de descripciones mejoradas - todas como una sola línea continua
   const templates = [
-    `Ofrecemos los mejores servicios profesionales para ${keyword} con expertos certificados Contáctanos ahora`,
-    `Soluciones personalizadas y efectivas para ${keyword} para tu bienestar completo Resultados garantizados`,
-    `Especialistas con más de 10 años de experiencia en ${keyword} con métodos probados Consulta sin compromiso`,
-    `Servicios premium y exclusivos para ${keyword} adaptados específicamente a tus necesidades Pide información`,
-    `Mejora tu vida y recupera tu felicidad con nuestros servicios profesionales para ${keyword} Llámanos hoy`,
-    `Métodos efectivos y comprobados para ${keyword} para recuperar tu tranquilidad y bienestar Infórmate ahora`,
-    `Recupera tu paz interior y armonía con nuestro servicio profesional de ${keyword} certificado Empieza hoy`,
-    `Expertos altamente calificados en ${keyword} comprometidos totalmente con tu bienestar Solicita información`,
-    `Servicios exclusivos de ${keyword} que marcan la diferencia en resultados y satisfacción Descubre cómo`,
-    `Soluciones rápidas y efectivas para ${keyword} a tu alcance las 24 horas todos los días Contáctanos ahora`,
-    `Resultados visibles y garantizados para ${keyword} desde la primera sesión personalizada Pide una consulta`,
-    `Transforma completamente tu vida con nuestras soluciones avanzadas para ${keyword} efectivo Infórmate ahora`,
+    `Ofrecemos los mejores servicios profesionales para ${keyword} con expertos certificados. Contáctanos ahora.`,
+    `Soluciones personalizadas y efectivas para ${keyword} para tu bienestar completo. Resultados garantizados.`,
+    `Especialistas con más de 10 años de experiencia en ${keyword} con métodos probados. Consulta sin compromiso.`,
+    `Servicios premium y exclusivos para ${keyword} adaptados específicamente a tus necesidades. Pide información.`,
+    `Mejora tu vida y recupera tu felicidad con nuestros servicios profesionales para ${keyword}. Llámanos hoy.`,
+    `Métodos efectivos y comprobados para ${keyword} para recuperar tu tranquilidad y bienestar. Infórmate ahora.`,
+    `Recupera tu paz interior y armonía con nuestro servicio profesional de ${keyword} certificado. Empieza hoy.`,
+    `Expertos altamente calificados en ${keyword} comprometidos totalmente con tu bienestar. Consulta ahora.`,
+    `Servicios exclusivos de ${keyword} que marcan la diferencia en resultados y satisfacción. Descubre cómo.`,
+    `Soluciones rápidas y efectivas para ${keyword} a tu alcance las 24 horas todos los días. Contacta ya.`,
+    `Resultados visibles y garantizados para ${keyword} desde la primera sesión personalizada. Pide consulta.`,
+    `Transforma completamente tu vida con nuestras soluciones avanzadas para ${keyword} efectivo. Infórmate.`,
   ]
 
   // Seleccionar una plantilla y asegurarse de que no exceda los 90 caracteres
   let description = templates[index % templates.length]
+
+  // Asegurarnos de que no haya saltos de línea
+  description = description.replace(/[\r\n]+/g, " ").trim()
+
+  // Limitar a 90 caracteres
   if (description.length > 90) {
     description = description.substring(0, 90)
   }
@@ -710,7 +715,9 @@ Formato: array JSON de strings.
     // Filtrar y añadir descripciones únicas
     for (const desc of parsedDescriptions) {
       const cleanDesc = removePunctuation(desc)
-      const trimmedDesc = removeTrailingWords(cleanDesc)
+      // Asegurarnos de eliminar saltos de línea
+      const processedDesc = cleanDesc.replace(/[\r\n]+/g, " ").trim()
+      const trimmedDesc = removeTrailingWords(processedDesc)
 
       // Verificar que no esté en el conjunto global de descripciones usadas
       const isUnique = !globalUsedDescriptions.has(trimmedDesc.toLowerCase())
@@ -903,6 +910,9 @@ function cleanJsonResponse(text: string): string {
   try {
     // Remove markdown code blocks if present
     let cleaned = text.replace(/```(json|javascript|js)?\n?/g, "").replace(/```$/g, "")
+
+    // Eliminar posibles saltos de línea en las descripciones
+    cleaned = cleaned.replace(/\n/g, " ")
 
     // Try to find the first [ and last ] to extract just the JSON array
     const startIndex = cleaned.indexOf("[")
